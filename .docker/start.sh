@@ -16,19 +16,6 @@ function is_installed {
 }
 
 
-function change_question {
-    read -n 1 -p "Do you want to proceed [Y/n]: " choice
-    if [ "$choice" = "n" ] || [ "$choice" = "N" ]; then
-        echo -e "\n\033[93m----------------============== Stop run! ==============----------------\e[0m"
-        exit 0
-    elif [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
-        echo -e "\n\033[93m----------------============== Continue run ==============----------------\n\e[0m"
-    else
-        echo -e "\n\033[93m----------------============== Wrong Answer! ==============----------------\e[0m"
-        change_question
-    fi
-}
-
 function check_system_requirements {
     echo ' ----------------============== Check if docker, docker-compose and python are installed ==============----------------'
     is_installed --strict 'docker' 'docker-compose' 'python'
