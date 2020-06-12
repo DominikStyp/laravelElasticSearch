@@ -1,0 +1,51 @@
+{%- if ENABLE_HTTPS == 'true' and CERT_NAME !='' and KEY_NAME !='' -%}
+server {
+  listen {{PORT_HTTP}};
+  server_name {{APP_NAME}}.{{DOMAIN}};
+{% if PORT_HTTPS == '443' %}  rewrite ^(.*) https://$host:$1 permanent;{% else %}  rewrite ^(.*) https://$host:{{PORT_HTTPS}} permanent;{% endif %}
+  error_log /var/log/nginx/{{APP_NAME}}_error.log;
+  access_log /var/log/nginx/{{APP_NAME}}_access.log;
+}
+
+server {
+  listen {{PORT_HTTPS}} ssl http2 default_server;
+  ssl_certificate     {{SSL_PATH}}/{{CERT_NAME}};
+  ssl_certificate_key {{SSL_PATH}}/{{KEY_NAME}};
+
+{%- else -%}
+server {
+  listen {{PORT_HTTP}} default_server;
+{%- endif %}
+  root /var/www/html/public;
+  server_name {{APP_NAME}}.{{DOMAIN}};
+
+{% if APP_ENV == 'dev' %}
+  location /phpmyadmin/ {
+    proxy_set_header X-Real-IP  $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Host $host;
+{% if PORT_PHPMYADMIN == '80' %}    proxy_pass http://{{DOCKER_PMA}}/;{% else %}    proxy_pass http://{{DOCKER_PMA}}:{{PORT_PHPMYADMIN}}/;{% endif %}
+    proxy_buffering off;
+  }
+{% endif %}
+
+  location / {
+    try_files $uri @rewriteapp;
+  }
+
+  location @rewriteapp {
+    rewrite ^(.*)$ /index.php/$1 last;
+  }
+
+  location ~ ^/(index|app|app_dev|config|adminer)\.php(/|$) {
+    fastcgi_pass {{DOCKER_PHP}}:9000;
+    fastcgi_split_path_info ^(.+\.php)(/.*)$;
+    include fastcgi_params;
+    fastcgi_param REQUEST_METHOD $request_method;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+{% if ENABLE_HTTPS == 'true' and CERT_NAME !='' and KEY_NAME !='' %}    fastcgi_param HTTPS 'on';{% else %}    fastcgi_param HTTPS 'off';{% endif %}
+  }
+
+  error_log /var/log/nginx/{{APP_NAME}}_error.log;
+  access_log /var/log/nginx/{{APP_NAME}}_access.log;
+}

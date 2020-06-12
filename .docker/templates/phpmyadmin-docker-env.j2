@@ -1,0 +1,6 @@
+{% if ENABLE_HTTPS == true -%}
+{% if PORT_HTTPS == '443' %}PMA_ABSOLUTE_URI=https://{{APP_NAME}}.{{DOMAIN}}/phpmyadmin{% else %}PMA_ABSOLUTE_URI=https://{{APP_NAME}}.{{DOMAIN}}:{{PORT_HTTPS}}/phpmyadmin{% endif %}
+{% else -%}
+{% if PORT_HTTP == '80' %}PMA_ABSOLUTE_URI=http://{{APP_NAME}}.{{DOMAIN}}/phpmyadmin{% else %}PMA_ABSOLUTE_URI=http://{{APP_NAME}}.{{DOMAIN}}:{{PORT_HTTP}}/phpmyadmin{% endif %}
+{%- endif %}
+PMA_HOST={{DOCKER_DB}}
