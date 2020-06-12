@@ -1,6 +1,23 @@
 version: '3'
 services:
 
+
+    elastic:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
+        container_name: "${APP_NAME}-elastic"
+        environment:
+            - discovery.type=single-node
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - elastic_volume:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+        networks:
+            - laravel_elastic_net
+
     database:
         env_file:
             - .env
@@ -42,7 +59,7 @@ services:
         depends_on:
             - database
         volumes:
-            - ./..:/var/www/html
+            - ./../elastic_app:/var/www/html
             - /var/www/html/.docker
         restart: always
 
@@ -60,7 +77,7 @@ services:
         depends_on:
             - php
         volumes:
-            - ./..:/var/www/html
+            - ./../elastic_app:/var/www/html
             - /var/www/html/.docker
             - ./nginx/vhosts:/etc/nginx/vhost.d
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf
@@ -70,6 +87,7 @@ services:
 volumes:
     laravel_elastic_db: {}
     laravel_elastic_db_settings: {}
+    elastic_volume: {}
 
 networks:
     laravel_elastic_net:
