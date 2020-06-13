@@ -78,12 +78,28 @@ class ElasticTest extends TestCase
                 ]
             ]
         ];
-        //multiple queries in loop
-        for($i = 1; $i <= 100; $i++) {
-            $response = Elasticsearch::search($params);
-            $this->assertNotEmpty($response);
-        }
+        $response = Elasticsearch::search($params);
+        $this->assertNotEmpty($response);
     }
+
+    public function testSearchMultipleFields(){
+        $indexName = 'posts_index';
+        $params = [
+            'index' => $indexName,
+            'body'  => [
+                'query' => [
+                    'multi_match' => [
+                        'fields' => ['title^2', 'content', 'category^2'], // ^2 increases relevance of the field by 2
+                        'query' => 'placeat'
+                    ]
+                ]
+            ]
+        ];
+        $response = Elasticsearch::search($params);
+        $this->assertNotEmpty($response);
+        dd($response);
+    }
+
 
     public function testIndicesStats(){
         $indexName = 'posts_index';
