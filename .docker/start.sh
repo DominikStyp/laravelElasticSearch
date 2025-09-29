@@ -6,6 +6,9 @@ function is_installed {
 
     for PACKAGE in "$@"
     do
+        if [[ "$PACKAGE" == "python" ]] && python3 --version > /dev/null 2>&1; then
+          continue
+        fi
         if ! ${PACKAGE} --version >/dev/null 2>&1; then
             [[ $RUN_STRICT == 1 ]] && {
                 echo -e "${RED}Error: No '$PACKAGE' package installed on this machine. Aborting.${UNSET}"
@@ -21,7 +24,7 @@ function check_system_requirements {
     is_installed --strict 'docker' 'docker-compose' 'python'
     is_installed 'j2' || {
         echo ' ----------------============== Check python version and if pip is installed ==============----------------'
-        PYTHON_MAIN_VERSION=$(python -c 'import platform; print(platform.python_version())' | awk -F "." '{print $1}')
+        PYTHON_MAIN_VERSION=$(python3 -c 'import platform; print(platform.python_version())' | awk -F "." '{print $1}')
 
         if [ "$PYTHON_MAIN_VERSION" == "3" ]; then
             is_installed 'pip3'
@@ -37,7 +40,7 @@ function check_system_requirements {
 
     echo ' ----------------============== Checking python pip packages path in PATH ==============----------------'
 
-    export PY_USER_BIN=$(python -c 'import site; print(site.USER_BASE + "/bin")')
+    export PY_USER_BIN=$(python3 -c 'import site; print(site.USER_BASE + "/bin")')
     if echo "$PATH" | grep -q "$PY_USER_BIN"; then
       echo "pip packages path already included in user PATH"
     else
